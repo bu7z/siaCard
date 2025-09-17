@@ -1,0 +1,54 @@
+version: "3.9"
+
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: siacard-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-siacard}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-siacard_pw}
+      POSTGRES_DB: ${POSTGRES_DB:-siacard}
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-siacard} -d ${POSTGRES_DB:-siacard}"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    ports:
+      - "5432:5432"
+
+  backend:
+    build:
+      context: ./apps/backend
+      dockerfile: Dockerfile
+    container_name: siacard-backend
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      DATABASE_URL: ${DATABASE_URL}
+      BACKEND_PORT: ${BACKEND_PORT:-8000}
+      BACKEND_WORKERS: ${BACKEND_WORKERS:-2}
+      BACKEND_LOG_LEVEL: ${BACKEND_LOG_LEVEL:-info}
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "${BACKEND_PORT:-8000}:8000"
+
+  frontend:
+    build:
+      context: ./apps/frontend
+    container_name: siacard-frontend
+    restart: unless-stopped
+    environment:
+      - VITE_API_BASE=http://localhost:${BACKEND_PORT:-8000}
+    depends_on:
+      - backend
+    ports:
+      - "${FRONTEND_PORT:-8080}:80"
+
+volumes:
+  db_data:

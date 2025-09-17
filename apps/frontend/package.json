@@ -1,0 +1,17 @@
+{
+  "name": "siacard-frontend",
+  "private": true,
+  "version": "0.0.1",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build"
+  },
+  "dependencies": {
+    "bootstrap": "^5.3.3",
+    "vue": "^3.4.29"
+  },
+  "devDependencies": {
+    "vite": "^5.4.0",
+    "@vitejs/plugin-vue": "^5.0.4"
+  }
+}
